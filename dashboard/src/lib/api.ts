@@ -15,34 +15,35 @@ export async function fetchJobs(): Promise<{ jobs: Job[]; total: number }> {
           id: 'job-sample-01',
           cafe_id: 'cafe-riyadh-01',
           telegram_chat_id: '9665000000',
-          original_images: ['/images/iced_v60.jpg'],
-          user_caption: 'آيس دريب اثيوبي مجفف 18 ريال',
+          original_images: ['/images/iced_v60.jpg', '/images/spanish_latte.jpg', '/images/cheesecake.jpg'],
+          user_caption: 'كولد برو + سبانش لاتيه + تشيز كيك باسك',
           style: 'مرِح',
           status: 'ready',
           script_data: {
-            hook_text: 'يسرسح على القلب! 🔥',
-            voiceover_text: 'يا ساتر على الروقان! لو تدور على شيء يبرد على قلبك ويعدل مزاجك بنص اليوم، هالمشروب خيالي ومضبوط بالملي. لا يفوتكم!',
-            estimated_duration: 14.5,
+            hook_text: 'يا هلا والله! إذا ودك تروق على أصولها 🔥',
+            voiceover_text: 'يا هلا والله! إذا ودك تروق على أصولها.. اليوم هبتنا غير! كولد برو يسرسح، وسبانش مثلج يضبط المزاج، ومعاهم تشيز كيك تذوب بالفم! مرنا وعيش الجو، ولا تنسى تعزم خويك!',
+            estimated_duration: 19.5,
             style: 'cheerful',
             style_arabic: 'مرِح',
             subtitles: [
-              { text: 'يا ساتر على الروقان!', start: 0, end: 2.5 },
-              { text: 'يبرّد على قلبك ويعدل مزاجك', start: 2.5, end: 6.5 },
-              { text: 'لا يفوتكم الطعم الخرافي!', start: 6.5, end: 14.5 }
+              { text: 'يا هلا والله! إذا ودك تروق على أصولها', start: 0, end: 4.5 },
+              { text: 'كولد برو وسبانش مثلج يضبط المزاج', start: 4.5, end: 9.3 },
+              { text: 'ومعاهم تشيز كيك تذوب بالفم', start: 9.3, end: 12.2 },
+              { text: 'مرنا وعيش الجو وخويك اليوم يعزمك', start: 12.2, end: 19.5 }
             ],
             captions: {
-              tiktok: 'يسرسح على القلب! ☕✨ جربته ولا لسه؟ منشن اللي يعزمك اليوم! #كافيهات_الرياض #قهوة_مختصة',
-              reels: 'على جوك وفي وقتك! 😍✨ جربه الحين في كافيه الرياض. احفظ البوست للمشوار الجاي!',
-              snapchat: 'يسرسح على القلب! 🔥 جربه الحين!',
-              facebook: 'روّق مزاجك مع آيس دريب اثيوبي مجفف في كافيه الرياض! شرفونا وعيشوا التجربة.'
+              tiktok: 'يسرسح على القلب ويضبط المزاج! ☕🧊 جربته ولا لسه؟ منشن اللي يعزمك اليوم! #كافيهات_الرياض #قهوة_مختصة #هبة_جديدة #يسرسح',
+              reels: 'على جوك وفي وقتك! 😍✨ كولد برو مع سبانش مثلج وتشيز كيك فاخرة. احفظ البوست لطلعة الويكند! #riyadh_cafes #specialty_coffee',
+              snapchat: 'اليوم هبتنا غير! 🔥 كولد برو وسبانش يسرسح.. مرنا الحين!',
+              facebook: 'روّق مزاجك مع باقة الصيف الخاصة في كافيه أروما الرياض! كولد برو طازج، سبانش مثلج، وقطعة تشيز كيك باسك غنية. شرفونا وعيشوا التجربة.'
             },
-            hashtags: ['#كافيهات_الرياض', '#قهوة_مختصة', '#هبة_جديدة', '#يسرسح', '#ترند_السعودية']
+            hashtags: ['#كافيهات_الرياض', '#قهوة_مختصة', '#هبة_جديدة', '#يسرسح', '#ترند_السعودية', '#حلا_الرياض']
           },
-          video_url: '/media/test_final_video.mp4',
-          video_stream_url: 'http://127.0.0.1:8000/media/test_final_video.mp4',
+          video_url: '/demo.mp4',
+          video_stream_url: '/demo.mp4',
           retry_count: 0,
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-          updated_at: new Date(Date.now() - 3500000).toISOString()
+          created_at: new Date(Date.now() - 1800000).toISOString(),
+          updated_at: new Date(Date.now() - 300000).toISOString()
         },
         {
           id: 'job-sample-02',
@@ -66,6 +67,8 @@ export async function fetchJobs(): Promise<{ jobs: Job[]; total: number }> {
             },
             hashtags: ['#كافيهات_جدة', '#قهوة_مختصة', '#روقان_المساء']
           },
+          video_url: '/demo.mp4',
+          video_stream_url: '/demo.mp4',
           retry_count: 0,
           created_at: new Date(Date.now() - 7200000).toISOString(),
           updated_at: new Date(Date.now() - 7100000).toISOString()

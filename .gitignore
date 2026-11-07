@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+output/
+backend/test_*.png
+backend/test_*.mp3
+backend/test_*.mp4
+backend/voice_*.mp3
+.next/
+node_modules/
+*.log
+.DS_Store

@@ -257,7 +257,7 @@ export default function JobsPage() {
             {/* 9:16 Video Player Container */}
             <div className="w-full md:w-80 bg-black flex items-center justify-center p-4 relative">
               <video
-                src={selectedVideo.video_stream_url || 'http://127.0.0.1:8000/media/test_final_video.mp4'}
+                src={selectedVideo.video_stream_url && selectedVideo.video_stream_url.startsWith('http') ? selectedVideo.video_stream_url : '/demo.mp4'}
                 controls
                 autoPlay
                 className="rounded-2xl max-h-[550px] w-full object-cover shadow-2xl"
