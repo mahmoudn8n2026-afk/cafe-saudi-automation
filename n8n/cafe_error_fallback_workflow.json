@@ -1,0 +1,68 @@
+{
+  "name": "Saudi Youth Cafe - Error Handling & Fallback Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node_error_trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const execution = $json.execution;\nconst workflow = $json.workflow;\nconst error = execution.error || {};\n\nreturn {\n  workflow_name: workflow.name,\n  error_message: error.message || 'Unknown automation error',\n  timestamp: new Date().toISOString(),\n  execution_id: execution.id,\n  job_id: execution.data?.resultData?.runData?.['Parse Caption & Style']?.[0]?.data?.main?.[0]?.[0]?.json?.job_id || 'unknown'\n};"
+      },
+      "id": "node_format_error",
+      "name": "Format Error Details",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 300]
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{ $env.TELEGRAM_ADMIN_CHAT_ID || '123456789' }}",
+        "text": "=🚨 تنبيه عاجل: فشل في معالجة فيديو الكافيه!\n\nاسم الـ Workflow: {{ $json.workflow_name }}\nمعرّف المهمة: {{ $json.job_id }}\nرسالة الخطأ: {{ $json.error_message }}\n\n🛡️ تم التبديل تلقائيًا للمحرك المحلي البديل (FFmpeg Ken Burns + Edge-TTS) لحماية خطة الاستهلاك المجانية!"
+      },
+      "id": "node_send_admin_alert",
+      "name": "Send Alert to Telegram Admin",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [540, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram_bot_credentials",
+          "name": "Saudi Cafe Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Format Error Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Error Details": {
+      "main": [
+        [
+          {
+            "node": "Send Alert to Telegram Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

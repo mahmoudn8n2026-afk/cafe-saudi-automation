@@ -1,0 +1,9 @@
+{
+  "script_engine": "free",
+  "video_engine": "free",
+  "voice_engine": "free",
+  "voice_gender": "male",
+  "default_style": "مرِح",
+  "auto_publish": false,
+  "warning_threshold": 80
+}

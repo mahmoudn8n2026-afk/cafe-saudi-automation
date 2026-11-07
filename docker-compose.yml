@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: saudi_cafe_n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=${WEBHOOK_URL:-http://localhost:5678/}
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=168
+      - GENERIC_TIMEZONE=Asia/Riyadh
+      - VIDEO_API_URL=http://video-worker:8000
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - video-worker
+
+  video-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: saudi_cafe_video_worker
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    volumes:
+      - ./output:/app/output
+      - ./assets:/app/assets
+      - ./backend/quotas.db:/app/backend/quotas.db
+
+volumes:
+  n8n_data:
