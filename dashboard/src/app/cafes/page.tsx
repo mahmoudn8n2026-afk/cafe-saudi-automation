@@ -33,10 +33,22 @@ export default function CafesPage() {
   const [cafes, setCafes] = useState<CafeItem[]>([
     {
       id: 'cafe-riyadh-01',
+      name: 'سَكَف - قهوة مختصة (Sakaf Specialty Coffee)',
+      city: 'الرياض - حي السلام (شرق الرياض)',
+      primary_color: '#C28751',
+      secondary_color: '#14110E',
+      tone: 'لهجة سعودية شبابية رايقة وعفوية تجمع بين الهدوء والسكينة والقهوة المختصة',
+      voice: 'حامد السعودي (ar-SA-HamedNeural) - نقي وطبيعي',
+      default_style: 'مرِح',
+      tiktok: '@sakaf.sa',
+      instagram: '@sakaf.sa'
+    },
+    {
+      id: 'cafe-riyadh-02',
       name: 'كافيه أروما الرياض (Aroma Roastery)',
       city: 'الرياض - حي النخيل',
-      primary_color: '#EAB308',
-      secondary_color: '#18181B',
+      primary_color: '#DDA15E',
+      secondary_color: '#181411',
       tone: 'لهجة سعودية شبابية رايقة وخفيفة ("يسرسح"، "على جوك")',
       voice: 'حامد السعودي (ar-SA-HamedNeural) - ودود ومرح',
       default_style: 'مرِح',

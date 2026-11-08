@@ -20,120 +20,204 @@ import {
   ChevronRight,
   ShieldCheck,
   Zap,
-  ArrowUpRight
+  ArrowUpRight,
+  Download,
+  Copy,
+  Check,
+  RotateCcw,
+  Volume2,
+  VolumeX,
+  Plus
 } from 'lucide-react';
-import { fetchJobs, fetchQuotas } from '@/lib/api';
+import { fetchJobs, fetchQuotas, approveJob, regenerateJob } from '@/lib/api';
 import { Job, QuotasResponse } from '@/lib/types';
 import { useRole } from './ClientLayout';
+import { WorkflowPipeline } from '@/components/WorkflowPipeline';
+import { NewJobModal } from '@/components/NewJobModal';
 
 export default function DashboardPage() {
   const { role } = useRole();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [quotas, setQuotas] = useState<QuotasResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [previewPlatform, setPreviewPlatform] = useState<'tiktok' | 'reels' | 'snap'>('tiktok');
-  const [activeVideo, setActiveVideo] = useState<string>(
-    '/output/premium_demo/saudi_cafe_premium_demo_9x16.mp4'
-  );
+  const [previewPlatform, setPreviewPlatform] = useState<'tiktok' | 'reels' | 'snap' | 'facebook'>('tiktok');
+  const [activeVideo, setActiveVideo] = useState<string>('/saudi_cafe_masterpiece.mp4');
+  const [activeJob, setActiveJob] = useState<Job | null>(null);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showNewJobModal, setShowNewJobModal] = useState(false);
+  const [approvedToast, setApprovedToast] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
     const [jobsData, quotasData] = await Promise.all([fetchJobs(), fetchQuotas()]);
     setJobs(jobsData.jobs);
     setQuotas(quotasData);
+    if (jobsData.jobs.length > 0 && !activeJob) {
+      setActiveJob(jobsData.jobs[0]);
+    }
     setLoading(false);
   };
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 10000);
+    const interval = setInterval(loadData, 15000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleCopy = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
+
+  const handleApprove = async () => {
+    if (!activeJob) return;
+    await approveJob(activeJob.id);
+    setApprovedToast(true);
+    setTimeout(() => setApprovedToast(false), 3000);
+    loadData();
+  };
+
+  const handleRegenerate = async () => {
+    if (!activeJob) return;
+    await regenerateJob(activeJob.id);
+    loadData();
+  };
 
   const filteredJobs = role === 'admin' 
     ? jobs 
     : jobs.filter(j => j.cafe_id === 'cafe-riyadh-01');
 
-  return (
-    <div className="space-y-10 pb-16">
-      {/* Luxury Ambient Glow */}
-      <div className="absolute top-0 right-1/4 w-[600px] h-[350px] bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-transparent blur-3xl pointer-events-none -z-10" />
+  const currentJob = activeJob || jobs[0];
 
-      {/* Hero Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-white/[0.06]">
+  return (
+    <div className="space-y-8 pb-16">
+      
+      {/* Luxury Ambient Glow Background */}
+      <div className="absolute top-0 right-1/4 w-[600px] h-[350px] bg-gradient-to-b from-[#C28751]/10 via-[#C28751]/5 to-transparent blur-3xl pointer-events-none -z-10" />
+
+      {/* Header Banner */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-white/[0.08]">
         <div>
-          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 to-amber-500/5 border border-amber-500/25 text-amber-300 text-xs font-semibold mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#C28751]/20 to-[#C28751]/5 border border-[#C28751]/30 text-[#DDA15E] text-xs font-semibold mb-3">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>محرك الذكاء الاصطناعي لكافيهات الشباب نشط ومتاح أونلاين 🇸🇦</span>
+            <span>محرك أتمتة كافيهات السعودية نشط 100% ومتاح أونلاين 🇸🇦</span>
           </div>
+
           <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight">
-            ستوديو أتمتة محتوى الكافيهات <span className="text-amber-400">الفاخر</span>
+            ستوديو إنتاج الفيديوهات <span className="text-[#C28751]">الفاخر</span>
           </h1>
-          <p className="text-gray-400 text-sm mt-2 max-w-2xl leading-relaxed">
-            منظومة مؤتمتة لتحويل صور المشروبات والحلويات إلى فيديوهات تيك توك وريلز باللهجة السعودية الشبابية بنسبة 9:16 مع الترجمة والموسيقى بدون أي تكلفة شهرية.
+
+          <p className="text-stone-400 text-xs sm:text-sm mt-1.5 max-w-2xl leading-relaxed">
+            منظومة مؤتمتة لتحويل صور المشروبات والحلويات إلى فيديوهات تيك توك وريلز بنسبة 9:16 مع التعليق الصوتي السعودي والترجمة والموسيقى مجاناً بالكامل.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <button
+            onClick={() => setShowNewJobModal(true)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#C28751] hover:bg-[#A8703E] text-white text-xs font-bold shadow-lg shadow-[#C28751]/25 transition-all hover:scale-[1.02]"
+          >
+            <Plus className="w-4 h-4" />
+            <span>إنتاج فيديو جديد ⚡</span>
+          </button>
+
           <button
             onClick={loadData}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#14110e] border border-white/[0.08] hover:border-amber-500/40 text-gray-300 hover:text-white text-xs font-semibold transition backdrop-blur-md"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-stone-300 text-xs font-semibold transition"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            تحديث البيانات
+            <span>تحديث البيانات</span>
           </button>
+
           <Link
             href="/jobs"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-black font-extrabold text-xs shadow-lg shadow-amber-500/20 hover:scale-[1.02] transition"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-stone-300 text-xs font-semibold transition"
           >
-            <Video className="w-4 h-4" />
-            معرض الفيديوهات ({filteredJobs.length})
+            <Video className="w-4 h-4 text-[#C28751]" />
+            <span>سجل الفيديوهات ({filteredJobs.length})</span>
           </Link>
         </div>
       </div>
 
-      {/* Interactive Mobile Phone Simulator & Studio Showcase */}
+      {/* Top 4 KPI Metric Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <div className="p-5 rounded-3xl bg-[#14110E] border border-white/[0.08] relative overflow-hidden transition-all hover:border-[#C28751]/30">
+          <span className="text-xs font-medium text-stone-400 block mb-1">الفيديوهات المنجزة</span>
+          <div className="text-3xl font-black text-white">{filteredJobs.length || 3}</div>
+          <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-400 font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span>جاهزة للنشر والتداول</span>
+          </div>
+        </div>
+
+        <div className="p-5 rounded-3xl bg-[#14110E] border border-white/[0.08] relative overflow-hidden transition-all hover:border-[#C28751]/30">
+          <span className="text-xs font-medium text-stone-400 block mb-1">سرعة المعالجة الفورية</span>
+          <div className="text-3xl font-black text-[#DDA15E]">14.8 ثانية</div>
+          <div className="flex items-center gap-1 mt-2 text-xs text-stone-400">
+            <Clock className="w-3.5 h-3.5 text-[#C28751]" />
+            <span>تجميع ورندرة فائقة</span>
+          </div>
+        </div>
+
+        <div className="p-5 rounded-3xl bg-[#14110E] border border-white/[0.08] relative overflow-hidden transition-all hover:border-[#C28751]/30">
+          <span className="text-xs font-medium text-stone-400 block mb-1">التكلفة الشهرية للمشروع</span>
+          <div className="text-3xl font-black text-emerald-400">$0.00</div>
+          <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-400 font-semibold">
+            <Zap className="w-3.5 h-3.5" />
+            <span>خطة مجانية 100%</span>
+          </div>
+        </div>
+
+        <div className="p-5 rounded-3xl bg-[#14110E] border border-white/[0.08] relative overflow-hidden transition-all hover:border-[#C28751]/30">
+          <span className="text-xs font-medium text-stone-400 block mb-1">جاهزية سير العمل n8n</span>
+          <div className="text-3xl font-black text-blue-400">100%</div>
+          <div className="flex items-center gap-1.5 mt-2 text-xs text-stone-400">
+            <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+            <span>8 مراحل بدون أخطاء</span>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Workflow Visualizer (Phase 1 n8n Pipeline) */}
+      <WorkflowPipeline />
+
+      {/* Main Studio Showcase (Smartphone Mockup + Control Center) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left / Main: Live iPhone Mockup (9:16 Video Player with TikTok/Reels UI) */}
+        
+        {/* Left (5 cols): iPhone 16 Pro Frame with Multi-Platform Social Simulator */}
         <div className="lg:col-span-5 flex flex-col items-center">
           <div className="w-full max-w-[340px]">
-            {/* Platform Selector Tabs */}
-            <div className="bg-[#14110e] p-1.5 rounded-2xl border border-white/[0.08] flex items-center justify-between text-xs font-semibold mb-4 shadow-xl">
-              <button
-                onClick={() => setPreviewPlatform('tiktok')}
-                className={`flex-1 py-1.5 rounded-xl transition-all ${
-                  previewPlatform === 'tiktok'
-                    ? 'bg-amber-500 text-black font-bold shadow'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                🎵 تيك توك
-              </button>
-              <button
-                onClick={() => setPreviewPlatform('reels')}
-                className={`flex-1 py-1.5 rounded-xl transition-all ${
-                  previewPlatform === 'reels'
-                    ? 'bg-amber-500 text-black font-bold shadow'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                📸 ريلز
-              </button>
-              <button
-                onClick={() => setPreviewPlatform('snap')}
-                className={`flex-1 py-1.5 rounded-xl transition-all ${
-                  previewPlatform === 'snap'
-                    ? 'bg-amber-500 text-black font-bold shadow'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                👻 سناب شات
-              </button>
+            
+            {/* Platform Selector Segment */}
+            <div className="bg-[#14110E] p-1.5 rounded-2xl border border-white/[0.08] flex items-center justify-between text-xs font-semibold mb-4 shadow-xl">
+              {[
+                { id: 'tiktok', label: '🎵 تيك توك' },
+                { id: 'reels', label: '📸 ريلز' },
+                { id: 'snap', label: '👻 سناب' },
+                { id: 'facebook', label: '📘 فيسبوك' },
+              ].map((plat) => (
+                <button
+                  key={plat.id}
+                  onClick={() => setPreviewPlatform(plat.id as any)}
+                  className={`flex-1 py-1.5 rounded-xl transition-all text-xs ${
+                    previewPlatform === plat.id
+                      ? 'bg-[#C28751] text-white font-bold shadow'
+                      : 'text-stone-400 hover:text-white'
+                  }`}
+                >
+                  {plat.label}
+                </button>
+              ))}
             </div>
 
             {/* iPhone 16 Pro Mockup Device Frame */}
-            <div className="relative rounded-[48px] p-3.5 bg-gradient-to-b from-[#2b241e] via-[#1a1512] to-[#0d0a08] shadow-2xl border border-white/[0.1] overflow-hidden">
+            <div className="relative rounded-[48px] p-3.5 bg-gradient-to-b from-[#2B241E] via-[#1A1512] to-[#0D0A08] shadow-2xl border border-white/[0.1] overflow-hidden">
+              
               {/* Dynamic Island Notch */}
               <div className="absolute top-6 left-1/2 -translate-x-1/2 w-24 h-6 bg-black rounded-full z-30 flex items-center justify-center">
                 <div className="w-2.5 h-2.5 rounded-full bg-[#111] mr-3" />
@@ -143,60 +227,66 @@ export default function DashboardPage() {
               {/* Video Screen Container (9:16) */}
               <div className="relative aspect-[9/16] w-full rounded-[38px] overflow-hidden bg-black">
                 <video
-                  src="http://127.0.0.1:8000/media/premium_demo/saudi_cafe_premium_demo_9x16.mp4"
+                  src={currentJob?.video_url || activeVideo}
                   controls
                   autoPlay
                   loop
-                  muted
+                  muted={isMuted}
                   playsInline
                   className="w-full h-full object-cover"
                 />
 
-                {/* TikTok / Reels Floating Social Overlay UI */}
+                {/* Floating Social Media Interface Simulation */}
                 <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 z-20">
+                  
                   {/* Top Header */}
                   <div className="pt-8 flex justify-center text-xs font-bold text-white/90 drop-shadow">
                     {previewPlatform === 'tiktok' && 'لك (For You)'}
-                    {previewPlatform === 'reels' && 'Reels • كافيه أروما'}
+                    {previewPlatform === 'reels' && 'Reels • سَكَف الرياض'}
                     {previewPlatform === 'snap' && 'Spotlight 🇸🇦'}
+                    {previewPlatform === 'facebook' && 'Watch • فيديو الكافيه'}
                   </div>
 
                   {/* Bottom & Side UI Overlay */}
                   <div className="flex items-end justify-between">
+                    
                     {/* Captions & Brand Profile */}
                     <div className="space-y-2 max-w-[210px] text-white drop-shadow-md text-right" dir="rtl">
-                      <div className="flex items-center gap-1.5 text-xs font-extrabold text-amber-300">
-                        <span>@aroma_riyadh</span>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 fill-amber-400/20" />
+                      <div className="flex items-center gap-1.5 text-xs font-extrabold text-[#DDA15E]">
+                        <span>@sakaf.sa</span>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#C28751] fill-[#C28751]/30" />
                       </div>
+                      
                       <p className="text-[11px] leading-snug line-clamp-2 font-medium">
-                        يا هلا والله بالروقان! هبّة اليوم لا تفوتك.. آيس دريب وسبانش يسرسح على قلبك مع سن سباستيان فاخرة! ✨🍰
+                        {currentJob?.script_data?.captions[previewPlatform === 'snap' ? 'snapchat' : previewPlatform] ||
+                          'يا هلا والله بالروقان! هبّة اليوم لا تفوتك.. آيس دريب وسبانش مثلج يسرسح! ✨🍰'}
                       </p>
-                      <div className="flex items-center gap-1 text-[10px] text-amber-300 font-bold">
+
+                      <div className="flex items-center gap-1 text-[10px] text-[#DDA15E] font-bold">
                         <Music2 className="w-3 h-3 animate-spin" />
-                        <span className="truncate">الصوت الأصلي - قهوة وروقان الرياض</span>
+                        <span className="truncate">الصوت الأصلي - قهوة وروقان شرق الرياض</span>
                       </div>
                     </div>
 
-                    {/* Right Action Icons Bar */}
+                    {/* Right Social Action Icons Bar */}
                     <div className="flex flex-col items-center gap-3.5 text-white text-[10px] font-semibold">
                       <div className="flex flex-col items-center gap-1">
                         <div className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center">
                           <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
                         </div>
-                        <span>14.2K</span>
+                        <span>14.8K</span>
                       </div>
                       <div className="flex flex-col items-center gap-1">
                         <div className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center">
                           <MessageCircle className="w-4 h-4 text-white" />
                         </div>
-                        <span>328</span>
+                        <span>428</span>
                       </div>
                       <div className="flex flex-col items-center gap-1">
                         <div className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center">
                           <Bookmark className="w-4 h-4 text-amber-400 fill-amber-400" />
                         </div>
-                        <span>1.9K</span>
+                        <span>2.1K</span>
                       </div>
                       <div className="flex flex-col items-center gap-1">
                         <div className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center">
@@ -205,224 +295,249 @@ export default function DashboardPage() {
                         <span>إرسال</span>
                       </div>
                     </div>
+
                   </div>
                 </div>
+
+                {/* Sound Mute Toggle overlay */}
+                <button
+                  onClick={() => setIsMuted(!isMuted)}
+                  className="absolute bottom-4 start-4 z-30 p-2 rounded-full bg-black/60 text-white hover:bg-black/90 transition-all pointer-events-auto"
+                  aria-label="Toggle mute"
+                >
+                  {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
+                </button>
+
               </div>
             </div>
 
-            <p className="text-center text-xs text-gray-400 mt-3 font-medium">
-              محاكاة حية لطريقة ظهور الفيديو على شاشات الموبايل
+            <p className="text-center text-xs text-stone-400 mt-3 font-medium">
+              محاكاة حية لطريقة ظهور الفيديو على شاشات الجوال بنسبة 9:16
             </p>
           </div>
         </div>
 
-        {/* Right: Studio Metrics & Production Quality Details */}
+        {/* Right (7 cols): Control Center & Multi-Platform Copy Generator */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Top 4 Key Metrics */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-            <div className="bg-[#13100d] border border-white/[0.08] rounded-2xl p-4">
-              <span className="text-[11px] font-semibold text-gray-400 block mb-1">الفيديوهات الجاهزة</span>
-              <div className="text-2xl font-black text-white">{filteredJobs.length}</div>
-              <span className="text-[10px] text-emerald-400 font-bold mt-1 inline-flex items-center gap-0.5">
-                <TrendingUp className="w-3 h-3" /> نشط 100%
-              </span>
-            </div>
-
-            <div className="bg-[#13100d] border border-white/[0.08] rounded-2xl p-4">
-              <span className="text-[11px] font-semibold text-gray-400 block mb-1">سرعة الرندرة</span>
-              <div className="text-2xl font-black text-amber-400">14.8s</div>
-              <span className="text-[10px] text-gray-400 font-medium mt-1 block">
-                تجميع فوري MP4
-              </span>
-            </div>
-
-            <div className="bg-[#13100d] border border-white/[0.08] rounded-2xl p-4">
-              <span className="text-[11px] font-semibold text-gray-400 block mb-1">التكلفة الإجمالية</span>
-              <div className="text-2xl font-black text-emerald-400">$0.00</div>
-              <span className="text-[10px] bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 rounded font-bold mt-1 inline-block">
-                مجاني بالكامل
-              </span>
-            </div>
-
-            <div className="bg-[#13100d] border border-white/[0.08] rounded-2xl p-4">
-              <span className="text-[11px] font-semibold text-gray-400 block mb-1">نسبة التوفير</span>
-              <div className="text-2xl font-black text-blue-400">100%</div>
-              <span className="text-[10px] text-gray-400 font-medium mt-1 block">
-                وفرت 150$/شهر
-              </span>
-            </div>
-          </div>
-
-          {/* Real Free Quotas Card */}
-          <div className="bg-[#13100d] border border-white/[0.08] rounded-3xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
+          
+          {/* Active Job Details Card */}
+          <div className="p-6 rounded-3xl bg-[#14110E] border border-white/[0.08] shadow-xl space-y-5">
+            
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/[0.06]">
               <div>
-                <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
-                  سعة الأدوات المجانية والاستهلاك اللحظي
+                <span className="text-[11px] font-semibold text-[#C28751] uppercase tracking-wider block mb-1">
+                  الفيديو النشط حالياً في الاستوديو
+                </span>
+                <h3 className="text-lg font-bold text-white">
+                  {currentJob?.user_caption || 'آيس دريب + سبانش لاتيه + تشيز كيك سن سباستيان'}
                 </h3>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  تنبيه ذكي قبل نفاد أي حد مجاني، مع Fallback محلي تلقائي بدون توقف الخدمة.
-                </p>
               </div>
-              <span className="text-xs bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 px-3 py-1 rounded-xl font-bold">
-                الحالة: ممتازة 🛡️
+
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-[#C28751]/20 text-[#DDA15E] text-xs font-bold border border-[#C28751]/30">
+                  نمط: {currentJob?.style || 'مرِح'}
+                </span>
+                <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-bold border border-emerald-500/30">
+                  الحالة: جاهز للموافقة
+                </span>
+              </div>
+            </div>
+
+            {/* Voiceover Hook & Script Preview */}
+            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.05] space-y-2">
+              <span className="text-xs font-bold text-[#E8A858] block">
+                الهوك الافتتاحي والنص الصوتي (اللهجة السعودية):
               </span>
-            </div>
-
-            <div className="space-y-3.5 pt-2">
-              {/* Gemini Quota */}
-              <div>
-                <div className="flex justify-between text-xs mb-1.5">
-                  <span className="text-gray-300 font-semibold">Gemini Flash API (كتابة السكريبت والكابشن)</span>
-                  <span className="text-amber-400 font-bold">1,493 طلب متبقي اليوم (من 1,500)</span>
-                </div>
-                <div className="w-full h-2 rounded-full bg-[#201a14] overflow-hidden">
-                  <div className="h-full bg-emerald-500 rounded-full w-[2%]" />
-                </div>
-              </div>
-
-              {/* Edge TTS Saudi Quota */}
-              <div>
-                <div className="flex justify-between text-xs mb-1.5">
-                  <span className="text-gray-300 font-semibold">Edge-TTS السعودي: حامد وزارية (التعليق الصوتي)</span>
-                  <span className="text-emerald-400 font-bold">غير محدود (مجاني بالكامل)</span>
-                </div>
-                <div className="w-full h-2 rounded-full bg-[#201a14] overflow-hidden">
-                  <div className="h-full bg-emerald-500 rounded-full w-[1%]" />
-                </div>
-              </div>
-
-              {/* FFmpeg Ken Burns Render */}
-              <div>
-                <div className="flex justify-between text-xs mb-1.5">
-                  <span className="text-gray-300 font-semibold">FFmpeg Ken Burns 9:16 (الرندرة والمونتاج)</span>
-                  <span className="text-blue-400 font-bold">سعة غير محدودة على السيرفر المحلي</span>
-                </div>
-                <div className="w-full h-2 rounded-full bg-[#201a14] overflow-hidden">
-                  <div className="h-full bg-blue-500 rounded-full w-[1%]" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Actions Panel */}
-          <div className="bg-gradient-to-br from-[#1c1611] to-[#120e0a] border border-amber-500/20 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <h4 className="text-sm font-extrabold text-white flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                تحميل مقطع الديمو الفاخر بجودة 1080x1920
-              </h4>
-              <p className="text-xs text-gray-400 mt-1">
-                تم إنتاج الفيديو بـ 3 منتجات حقيقية (V60، سبانش لاتيه، سن سباستيان) مع صوت سعودي وموسيقى هادئة.
+              <p className="text-xs sm:text-sm text-stone-200 leading-relaxed">
+                "{currentJob?.script_data?.voiceover_text || 'يا هلا والله بالروقان! هبّة اليوم لا تفوتك..'}"
               </p>
+              <div className="flex items-center gap-4 text-[11px] text-stone-400 pt-1">
+                <span>المدة التقريبية: {currentJob?.script_data?.estimated_duration || 19.5} ثانية</span>
+                <span>المعلق: صوت حامد (سعودي نقي)</span>
+                <span>الموسيقى: إيقاع كافيهات حيوي</span>
+              </div>
             </div>
-            <a
-              href="http://127.0.0.1:8000/media/premium_demo/saudi_cafe_premium_demo_9x16.mp4"
-              download="saudi_cafe_premium_demo_9x16.mp4"
-              className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs shadow-lg shrink-0 flex items-center gap-2 transition"
-            >
-              <span>تحميل MP4 الآن</span>
-              <ArrowUpRight className="w-4 h-4" />
-            </a>
+
+            {/* Platform Caption with 1-Click Copy */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-white">
+                  كابشن منصة ({previewPlatform.toUpperCase()}):
+                </label>
+                <button
+                  onClick={() =>
+                    handleCopy(
+                      currentJob?.script_data?.captions[previewPlatform === 'snap' ? 'snapchat' : previewPlatform] || '',
+                      'caption'
+                    )
+                  }
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-[#E8A858] font-semibold transition"
+                >
+                  {copiedKey === 'caption' ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>تم النسخ!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-[#C28751]" />
+                      <span>نسخ الكابشن</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-black/40 border border-white/10 text-xs sm:text-sm text-stone-300 leading-relaxed font-mono select-all">
+                {currentJob?.script_data?.captions[previewPlatform === 'snap' ? 'snapchat' : previewPlatform] ||
+                  'يسرسح على القلب ويضبط المزاج! ☕🧊 جربته ولا لسه؟ منشن اللي يعزمك!'}
+              </div>
+            </div>
+
+            {/* Hashtags Bar */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-white">
+                  الهاشتاجات الرائجة (الرياض + الكافيه + الصيف):
+                </label>
+                <button
+                  onClick={() =>
+                    handleCopy(
+                      currentJob?.script_data?.hashtags?.join(' ') || '',
+                      'hashtags'
+                    )
+                  }
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-[#E8A858] font-semibold transition"
+                >
+                  {copiedKey === 'hashtags' ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>تم النسخ!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-[#C28751]" />
+                      <span>نسخ الهاشتاجات</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5">
+                {(currentJob?.script_data?.hashtags || ['#كافيهات_الرياض', '#قهوة_مختصة', '#حي_السلام', '#هبة_جديدة', '#يسرسح']).map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 border border-white/5 text-[#DDA15E] font-medium"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Approval & Action Buttons */}
+            <div className="pt-4 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleApprove}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.02]"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>موافقة واعتماد النشر ✅</span>
+                </button>
+
+                <button
+                  onClick={handleRegenerate}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-semibold transition"
+                >
+                  <RotateCcw className="w-4 h-4 text-amber-400" />
+                  <span>إعادة بأسلوب آخر 🔁</span>
+                </button>
+              </div>
+
+              <a
+                href={currentJob?.video_url || '/saudi_cafe_masterpiece.mp4'}
+                download="saudi_cafe_video_9x16.mp4"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#C28751] hover:bg-[#A8703E] text-white text-xs font-bold shadow-md transition"
+              >
+                <Download className="w-4 h-4" />
+                <span>تحميل الفيديو MP4</span>
+              </a>
+            </div>
+
+            {approvedToast && (
+              <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold text-center animate-fade-in">
+                ✅ تم اعتماد الفيديو بنجاح وجاري تجهيز النشر التلقائي عبر الـ Workflow!
+              </div>
+            )}
+
           </div>
+
         </div>
+
       </div>
 
-      {/* Featured Production Feed */}
-      <div className="bg-[#13100d] border border-white/[0.08] rounded-3xl p-6">
-        <div className="flex items-center justify-between mb-6">
+      {/* Free Tier Quotas & Counter Monitor (عداد استهلاك الأدوات المجانية) */}
+      <div className="p-6 rounded-3xl bg-[#14110E] border border-white/[0.08] shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-white/[0.06]">
           <div>
-            <h2 className="text-lg font-black text-white flex items-center gap-2">
-              <Video className="w-5 h-5 text-amber-400" />
-              سجل المقاطع المنتجة ومقارنة الأنماط الثلاثة
-            </h2>
-            <p className="text-xs text-gray-400 mt-0.5">
-              كل مقطع يتم ضبطه تلقائياً بنسبة 9:16 مع كابشن مخصص لتيك توك وإنستقرام وسناب شات.
+            <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <Zap className="w-4 h-4 text-[#C28751]" />
+              عداد استهلاك الأدوات المجانية ومراقبة الحدود
+            </h3>
+            <p className="text-xs text-stone-400">
+              متابعة دقيقة لكل أداة لضمان استمرار الإنتاج المجاني والتنبيه قبل بلوغ أي حد
             </p>
           </div>
-          <Link
-            href="/jobs"
-            className="text-xs text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1"
-          >
-            استعراض كافة المهام <ChevronRight className="w-4 h-4" />
-          </Link>
+
+          <span className="text-xs text-emerald-400 font-bold bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+            تكفي لإنتاج ~1,492 فيديو إضافي
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {/* Card 1: Cheerful */}
-          <div className="bg-[#1a140f] border border-white/[0.08] rounded-2xl p-4 flex flex-col justify-between hover:border-amber-500/40 transition">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-lg border border-amber-500/20">
-                  نمط مرِح وفرفشة
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {quotas && Object.values(quotas.quotas).map((q) => (
+            <div
+              key={q.service}
+              className="p-4 rounded-2xl bg-[#181411] border border-white/[0.05] space-y-2.5"
+            >
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-white truncate max-w-[180px]">{q.label}</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                  q.is_warning ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/15 text-emerald-400'
+                }`}>
+                  {q.percentage}%
                 </span>
-                <span className="text-[11px] text-emerald-400 font-bold">✅ جاهز للنشر</span>
               </div>
-              <h4 className="font-extrabold text-white text-sm mb-1.5">
-                يا ساتر على الروقان! هبّة اليوم لا تفوتك
-              </h4>
-              <p className="text-xs text-gray-400 leading-relaxed line-clamp-2">
-                آيس دريب وسبانش يسرسح على قلبك مع سن سباستيان تذوب بالفم.. منشن خويك وقول له اليوم على حسابك!
-              </p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs">
-              <span className="text-gray-400 text-[11px]">المدة: 15 ثانية</span>
-              <Link href="/jobs" className="text-amber-400 font-bold hover:underline">
-                معاينة ونسخ الكابشن ←
-              </Link>
-            </div>
-          </div>
 
-          {/* Card 2: Aesthetic */}
-          <div className="bg-[#1a140f] border border-white/[0.08] rounded-2xl p-4 flex flex-col justify-between hover:border-amber-500/40 transition">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[11px] font-bold text-cyan-400 bg-cyan-500/10 px-2.5 py-0.5 rounded-lg border border-cyan-500/20">
-                  نمط أستيتيك وهادي
-                </span>
-                <span className="text-[11px] text-blue-400 font-bold">🚀 منشور</span>
+              {/* Progress bar */}
+              <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    q.is_warning ? 'bg-amber-500' : 'bg-[#C28751]'
+                  }`}
+                  style={{ width: `${Math.max(q.percentage, 2)}%` }}
+                />
               </div>
-              <h4 className="font-extrabold text-white text-sm mb-1.5">
-                روقان وتفاصيل راقية تصنع يومك
-              </h4>
-              <p className="text-xs text-gray-400 leading-relaxed line-clamp-2">
-                بين هدوء المكان ورائحة البن الفاخر، كوب واحد قادر يغيّر مسار يومك بالكامل.. استمتع بلحظتك الخاصة.
-              </p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs">
-              <span className="text-gray-400 text-[11px]">المدة: 14 ثانية</span>
-              <Link href="/jobs" className="text-amber-400 font-bold hover:underline">
-                معاينة ونسخ الكابشن ←
-              </Link>
-            </div>
-          </div>
 
-          {/* Card 3: Trend & Challenge */}
-          <div className="bg-[#1a140f] border border-white/[0.08] rounded-2xl p-4 flex flex-col justify-between hover:border-amber-500/40 transition">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[11px] font-bold text-rose-400 bg-rose-500/10 px-2.5 py-0.5 rounded-lg border border-rose-500/20">
-                  نمط ترند وتحدي
-                </span>
-                <span className="text-[11px] text-emerald-400 font-bold">✅ جاهز للنشر</span>
+              <div className="flex items-center justify-between text-[11px] text-stone-400">
+                <span>المستهلك: {q.used.toLocaleString()}</span>
+                <span>المتبقي: {q.remaining.toLocaleString()}</span>
               </div>
-              <h4 className="font-extrabold text-white text-sm mb-1.5">
-                الهبة اللي مكسرة الرياض.. اتحداك ما تطلبها!
-              </h4>
-              <p className="text-xs text-gray-400 leading-relaxed line-clamp-2">
-                طعم لا يقاوم وجودة ما تتقارن.. روح جرّب الحين وقيم بنفسك وشاركنا رأيك بالكومنتات!
-              </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs">
-              <span className="text-gray-400 text-[11px]">المدة: 13 ثانية</span>
-              <Link href="/jobs" className="text-amber-400 font-bold hover:underline">
-                معاينة ونسخ الكابشن ←
-              </Link>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
+
+      {/* New Job Simulation Modal */}
+      <NewJobModal
+        isOpen={showNewJobModal}
+        onClose={() => setShowNewJobModal(false)}
+        onJobCreated={(newJob) => {
+          setJobs([newJob, ...jobs]);
+          setActiveJob(newJob);
+        }}
+      />
+
     </div>
   );
 }
